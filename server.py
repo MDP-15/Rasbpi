@@ -36,18 +36,18 @@ def work():
 
 if __name__ == '__main__':
     server_list = []
-    config = ProjectConfig()
-    bt_server = ProducerConsumer(BluetoothConn(config))
-    pc_server = ProducerConsumer(PcConn(ProjectConfig(IP_PORT=9999)))
-    pc_server2 = ProducerConsumer(PcConn(ProjectConfig(IP_PORT=9998)))
-    pc_server3 = ProducerConsumer(PcConn(ProjectConfig(IP_PORT=9997)))
+    config = ProjectConfig(USB_PORT='COM3')
 
-    pc_server.register([pc_server2])
-    pc_server2.register([pc_server3])
+    bt_server = ProducerConsumer(BluetoothConn(config))
+    usb_server = ProducerConsumer(ArduinoConn(config))
+    pc_server = ProducerConsumer(PcConn(config))
+
+    pc_server.register([bt_server, usb_server])
+    bt_server.register([pc_server, usb_server])
+    usb_server.register([bt_server, pc_server])
 
     server_list.append(bt_server)
+    server_list.append(usb_server)
     server_list.append(pc_server)
-    server_list.append(pc_server2)
-    server_list.append(pc_server3)
 
     run_all(server_list)

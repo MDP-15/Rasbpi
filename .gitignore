@@ -1,0 +1,27 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+
+.DS_Store
+.vscode
+*.idea
+*.iml
+
+*.log
+main
+
+#*.env
+dist/*
+.template
+#*.sh
+.scannerwork
+
+!command/*
+config/sonarqube-report/
+sonar.sh
+*.yml
+perf-spanner.json

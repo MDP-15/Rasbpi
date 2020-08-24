@@ -58,7 +58,7 @@ class BluetoothConn(ServerInterface):
             return data
 
         except Exception as e:
-            print(f'Error with reading: {e}')
+            print(f'Error with reading from {self.get_name()}: {e}')
             print('Reconnecting...')
             self.connect()
             return None
@@ -70,7 +70,7 @@ class BluetoothConn(ServerInterface):
             print(f'Sent to Android device: {message}')
 
         except Exception as e:
-            print(f'Error with writing: {e}')
+            print(f'Error with writing {message} to {self.get_name()}: {e}')
             print('Reconnecting...')
             self.connect()
 

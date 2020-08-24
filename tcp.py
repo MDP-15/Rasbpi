@@ -62,7 +62,7 @@ class PcConn(ServerInterface):
             return data
 
         except Exception as e:
-            print(f'Error with reading: {e}')
+            print(f'Error with reading from {self.get_name()}: {e}')
             print('Reconnecting...')
             self.connect()
             return None
@@ -74,7 +74,7 @@ class PcConn(ServerInterface):
             self.client.sendto(byte_msg, self.addr)
             print(f'Sent to PC: {message}')
         except Exception as e:
-            print(f'Error with writing {message}: {e}')
+            print(f'Error with writing {message} to {self.get_name()}: {e}')
             print('Reconnecting...')
             self.connect()
 
