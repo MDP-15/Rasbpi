@@ -36,7 +36,7 @@ def work():
 
 if __name__ == '__main__':
     server_list = []
-    config = ProjectConfig(USB_PORT='COM3')
+    config = ProjectConfig(default=False)
 
     bt_server = ProducerConsumer(BluetoothConn(config))
     usb_server = ProducerConsumer(ArduinoConn(config))
