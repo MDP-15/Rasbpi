@@ -45,7 +45,7 @@ class ArduinoConn(ServerInterface):
             data = self.conn.readline()
             data = str(data.decode('utf-8'))
             print(f'Received from Arduino: {data}')
-            return data
+            return self.format_data(data)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')

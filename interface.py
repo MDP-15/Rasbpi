@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class ServerInterface(ABC):
@@ -25,3 +26,6 @@ class ServerInterface(ABC):
     @abstractmethod
     def write(self, message):
         pass
+
+    def format_data(self, data) -> str:
+        return format(f'data from {self.get_name()} at {datetime.now()}: {data}')
