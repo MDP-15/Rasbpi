@@ -18,17 +18,17 @@ class ArduinoConn(ServerInterface):
     def connect(self):
         # Create socket for the serial port
         print(f'Waiting for a {self.get_name()}...')
-        while not self._connected:
-            try:
-                self.conn = serial.Serial(self.port, self.baud_rate)
-                self._connected = True
-                print(f'Connected to {self.conn.name}')
-                continue
-            except Exception as e:
-                print(f'Error with connection: {e}')
-                self.disconnect()
-                time.sleep(1)
-            print("Retrying Arduino Connection...")
+        #while not self._connected:
+        try:
+            self.conn = serial.Serial(self.port, self.baud_rate)
+            self._connected = True
+            print(f'Connected to {self.conn.name}')
+            #continue
+        except Exception as e:
+            print(f'Error with {self.get_name()}: {e}')
+            self.disconnect()
+            raise ConnectionError
+            #print("Retrying Arduino Connection...")
 
     def is_connected(self) -> bool:
         return self._connected

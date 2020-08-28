@@ -15,11 +15,14 @@ class ProducerConsumer(object):
         return Thread(target=target, daemon=True)
 
     def start(self):
-        self.server.connect()
-        read = self.spawn_thread(self.read_listen)
-        write = self.spawn_thread(self.write_listen)
-        read.start()
-        write.start()
+        try:
+            self.server.connect()
+            read = self.spawn_thread(self.read_listen)
+            write = self.spawn_thread(self.write_listen)
+            read.start()
+            write.start()
+        except ConnectionError:
+            print(f'{self.server.get_name()}: connection ended')
 
     def read_listen(self):
         while True:

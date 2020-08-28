@@ -45,8 +45,9 @@ class PcConn(ServerInterface):
             self._connected = True
 
         except Exception as e:
-            print(f'Error with connection: {e}')
+            print(f'Error with {self.get_name()}: {e}')
             self.disconnect()
+            raise ConnectionError
 
     def read(self):
         try:

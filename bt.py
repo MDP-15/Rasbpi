@@ -11,8 +11,10 @@ class BluetoothConn(ServerInterface):
         self.client = None
         self._connected = False
 
-        self.address = ''
-        self.port = 0
+        self.config = config
+
+        self.address = self.config.get('BT_ADDRESS')
+        self.port = int(self.config.get('BT_PORT'))
 
     def get_name(self) -> str:
         return format(f'Bluetooth connection on {self.address} port {self.port}')
@@ -28,7 +30,7 @@ class BluetoothConn(ServerInterface):
 
             self.conn.listen(1)
 
-            uuid = '94f39d29-7d6d-437d-973b-fba39e49d4ee'
+            uuid = self.config.get('BT_UUID')
             bluetooth.advertise_service(sock=self.conn,
                                         name='MDP-Group-15-Bluetooth-Server',
                                         service_id=uuid,
@@ -41,8 +43,9 @@ class BluetoothConn(ServerInterface):
             self._connected = True
 
         except Exception as e:
-            print(f'Error with connection: {e}')
+            print(f'Error with {self.get_name()}: {e}')
             self.disconnect()
+            raise ConnectionError
 
     def read(self):
         try:
