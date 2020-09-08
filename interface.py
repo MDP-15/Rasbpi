@@ -28,4 +28,5 @@ class ServerInterface(ABC):
         pass
 
     def format_data(self, data) -> str:
-        return format(f'data from {self.get_name()} at {datetime.now()}: {data}')
+        #return format(f'data from {self.get_name()} at {datetime.now()}: {data}')
+        return data
