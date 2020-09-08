@@ -58,7 +58,7 @@ class BluetoothConn(ServerInterface):
                 self.connect()
                 return None
             print(f'Received from Android device: {data}')
-            return data
+            return self.format_data(data)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
