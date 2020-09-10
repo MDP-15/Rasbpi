@@ -8,18 +8,23 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
+import threading
 
-PAGE="""\
+PAGE = """\
 <html>
 <head>
 <title>Raspberry Pi - Surveillance Camera</title>
 </head>
 <body>
-<center><h1>Raspberry Pi - Surveillance Camera</h1></center>
+<center><h1>Raspberry Pi - Camera</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
+<form action="/stream.mjpg">
+    <button name="captureBtn" type="submit">CAPTURE IMAGE</button>
+</form>
 </body>
 </html>
 """
+
 
 class StreamingOutput(object):
     def __init__(self):
@@ -38,6 +43,7 @@ class StreamingOutput(object):
             self.buffer.seek(0)
         return self.buffer.write(buf)
 
+
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
@@ -48,7 +54,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             content = PAGE.encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', len(content))
+            self.send_header('Content-Length', str(len(content)))
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/stream.mjpg':
@@ -65,7 +71,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                         frame = output.frame
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame))
+                    self.send_header('Content-Length', str(len(frame)))
                     self.end_headers()
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
@@ -77,18 +83,21 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
+
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
+
 with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
     output = StreamingOutput()
-    #Uncomment the next line to change your Pi's Camera rotation (in degrees)
-    #camera.rotation = 90
+    # Uncomment the next line to change your Pi's Camera rotation (in degrees)
+    # camera.rotation = 90
     camera.start_recording(output, format='mjpeg')
     try:
         address = ('192.168.15.1', 8000)
         server = StreamingServer(address, StreamingHandler)
         server.serve_forever()
+
     finally:
         camera.stop_recording()
