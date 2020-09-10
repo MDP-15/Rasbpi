@@ -12,14 +12,26 @@ from http import server
 PAGE = """\
 <html>
 <head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type=text/javascript>
+        $(function() {
+          $('a#capture').bind('click', function() {
+            $.getJSON('/capture',
+                function(data) {
+              //do nothing
+            });
+            return false;
+          });
+        });
+</script>
 <title>Raspberry Pi - Surveillance Camera</title>
 </head>
 <body>
 <center><h1>Raspberry Pi - Camera</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
-<a href="/capture">
-    <button name="captureBtn" type="submit">CAPTURE IMAGE</button>
-</href>
+<center><a href=# id=capture>
+    <button>CAPTURE IMAGE</button>
+</href></center>
 </body>
 </html>
 """
@@ -98,7 +110,7 @@ with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
 
 
     def capture():
-        camera.capture('/temp/image.jpg')
+        camera.capture('image.jpg')
 
 
     try:
