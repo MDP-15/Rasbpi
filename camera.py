@@ -4,6 +4,7 @@
 
 import io
 import picamera
+import random
 import logging
 import socketserver
 from threading import Condition
@@ -110,7 +111,8 @@ with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
 
 
     def capture():
-        camera.capture('image.jpg')
+        random_nb = random.randint(1, 1000000)
+        camera.capture(f'/home/pi/Desktop/camera_images/image{random_nb}.jpg')
 
 
     try:
