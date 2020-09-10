@@ -8,7 +8,6 @@ import logging
 import socketserver
 from threading import Condition
 from http import server
-import threading
 
 PAGE = """\
 <html>
@@ -18,9 +17,9 @@ PAGE = """\
 <body>
 <center><h1>Raspberry Pi - Camera</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
-<form action="/stream.mjpg">
+<a href="/capture">
     <button name="captureBtn" type="submit">CAPTURE IMAGE</button>
-</form>
+</href>
 </body>
 </html>
 """
@@ -57,6 +56,8 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(content)))
             self.end_headers()
             self.wfile.write(content)
+        elif self.path == '/capture':
+            capture()
         elif self.path == '/stream.mjpg':
             self.send_response(200)
             self.send_header('Age', 0)
@@ -94,6 +95,12 @@ with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
     # Uncomment the next line to change your Pi's Camera rotation (in degrees)
     # camera.rotation = 90
     camera.start_recording(output, format='mjpeg')
+
+
+    def capture():
+        camera.capture('/temp/image.jpg')
+
+
     try:
         address = ('192.168.15.1', 8000)
         server = StreamingServer(address, StreamingHandler)
