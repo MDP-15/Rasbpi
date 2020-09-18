@@ -6,7 +6,27 @@ from queue import Queue
 from producer_consumer import ProducerConsumer
 from config import ProjectConfig
 
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+import pickle
+import struct
+
+camera = PiCamera()
+camera.resolution = (640, 480)
+camera.framerate = 32
+rawCapture = PiRGBArray(camera, size=(640, 480))
+
 thread_queue = Queue()
+
+
+def stream(server):
+    for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+        image = frame.array
+
+        data = pickle.dumps(image, 0)
+        size = len(data)
+        struct.pack(">L", size) + data
+        server.stream(data)
 
 
 def run_all(servers):
@@ -51,3 +71,4 @@ if __name__ == '__main__':
     server_list.append(pc_server)
 
     run_all(server_list)
+    threading.Thread(target=stream, args=[pc_server]).start()

@@ -79,6 +79,9 @@ class PcConn(ServerInterface):
             print('Reconnecting...')
             self.connect()
 
+    def stream(self, data):
+        self.conn.sendall(data)
+
 
 if __name__ == '__main__':
     server = PcConn(ProjectConfig())
