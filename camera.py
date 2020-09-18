@@ -25,7 +25,7 @@ PAGE = """\
           });
         });
 </script>
-<title>Raspberry Pi - Surveillance Camera</title>
+<title>Raspberry Pi - Camera</title>
 </head>
 <body>
 <center><h1>Raspberry Pi - Camera</h1></center>
