@@ -25,12 +25,15 @@ class PiVideoStream(ServerInterface):
     def write(self, message):
         time.sleep(5.0)
 
-    def __init__(self, resolution=(640, 480), framerate=32):
+    def __init__(self, resolution=(320, 240), framerate=1):
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera.resolution = resolution
         self.camera.framerate = framerate
         self.raw_capture = PiRGBArray(self.camera, size=resolution)
+
+        time.sleep(2.0)
+
         self.stream = self.camera.capture_continuous(self.raw_capture, format="bgr", use_video_port=True)
 
         self.frame = None
@@ -64,9 +67,9 @@ class PiVideoStream(ServerInterface):
         return self.serve()
 
     def serve(self):
-        data = pickle.dumps(self.frame, 0)
-        size = len(data)
-        data = struct.pack(">L", size)+data
+        data = pickle.dumps(self.frame)
+        #size = len(data)
+        #data = struct.pack(">L", size)+data
         return data
 
     def stop(self):
