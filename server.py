@@ -5,7 +5,7 @@ from usb import ArduinoConn
 from queue import Queue
 from producer_consumer import ProducerConsumer
 from config import ProjectConfig
-from pistream import PiVideoStream
+from camera import stream
 
 
 thread_queue = Queue()
@@ -39,20 +39,18 @@ def work():
 if __name__ == '__main__':
     server_list = []
     config = ProjectConfig(default=False)
+    threading.Thread(target=stream, daemon=True).start()
 
     bt_server = ProducerConsumer(BluetoothConn(config))
     usb_server = ProducerConsumer(ArduinoConn(config))
     pc_server = ProducerConsumer(PcConn(config))
-    camera_server = ProducerConsumer(PiVideoStream())
 
     pc_server.register([bt_server, usb_server])
     bt_server.register([pc_server, usb_server])
     usb_server.register([bt_server, pc_server])
-    camera_server.register([pc_server])
 
     server_list.append(bt_server)
     server_list.append(usb_server)
     server_list.append(pc_server)
-    server_list.append(camera_server)
 
     run_all(server_list)

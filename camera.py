@@ -13,26 +13,11 @@ from http import server
 PAGE = """\
 <html>
 <head>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script type=text/javascript>
-        $(function() {
-          $('a#capture').bind('click', function() {
-            $.getJSON('/capture',
-                function(data) {
-              //do nothing
-            });
-            return false;
-          });
-        });
-</script>
 <title>Raspberry Pi - Camera</title>
 </head>
 <body>
 <center><h1>Raspberry Pi - Camera</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
-<center><a href=# id=capture>
-    <button>CAPTURE IMAGE</button>
-</href></center>
 </body>
 </html>
 """
@@ -69,8 +54,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Content-Length', str(len(content)))
             self.end_headers()
             self.wfile.write(content)
-        elif self.path == '/capture':
-            capture()
         elif self.path == '/stream.mjpg':
             self.send_response(200)
             self.send_header('Age', 0)
@@ -103,22 +86,18 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
 
 
-with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
-    output = StreamingOutput()
-    # Uncomment the next line to change your Pi's Camera rotation (in degrees)
-    # camera.rotation = 90
-    camera.start_recording(output, format='mjpeg')
+output = StreamingOutput()
 
 
-    def capture():
-        random_nb = random.randint(1, 1000000)
-        camera.capture(f'/home/pi/Desktop/camera_images/image{random_nb}.jpg')
+def stream():
+    with picamera.PiCamera(resolution='640x480', framerate=30) as camera:
+        # camera.rotation = 90
+        camera.start_recording(output, format='mjpeg')
 
+        try:
+            address = ('192.168.15.1', 8000)
+            s = StreamingServer(address, StreamingHandler)
+            s.serve_forever()
 
-    try:
-        address = ('192.168.15.1', 8000)
-        server = StreamingServer(address, StreamingHandler)
-        server.serve_forever()
-
-    finally:
-        camera.stop_recording()
+        finally:
+            camera.stop_recording()
