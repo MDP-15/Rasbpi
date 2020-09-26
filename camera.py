@@ -45,12 +45,6 @@ class StreamingOutput(object):
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/labels':
-            content = PAGE.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
             ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
             if ctype != 'application/json':
                 self.send_response(400)
