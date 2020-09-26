@@ -25,7 +25,7 @@ class PiVideoStream(ServerInterface):
     def write(self, message):
         time.sleep(5.0)
 
-    def __init__(self, resolution=(320, 240), framerate=1):
+    def __init__(self, resolution=(640, 480), framerate=32, save=False):
         # initialize the camera and stream
         self.camera = PiCamera()
         self.camera.resolution = resolution
@@ -34,7 +34,10 @@ class PiVideoStream(ServerInterface):
 
         time.sleep(2.0)
 
-        self.stream = self.camera.capture_continuous(self.raw_capture, format="bgr", use_video_port=True)
+        if save:
+            self.stream = self.camera.capture_continuous(f'/home/pi/Desktop/recording/recording.h264', format="bgr", use_video_port=True)
+        else:
+            self.stream = self.camera.capture_continuous(self.raw_capture, format="bgr", use_video_port=True)
 
         self.frame = None
         self.stopped = False
@@ -63,8 +66,8 @@ class PiVideoStream(ServerInterface):
 
     def read(self):
         # return the frame most recently read
-        # return self.frame
-        return self.serve()
+        return self.frame
+        # return self.serve()
 
     def serve(self):
         data = pickle.dumps(self.frame)
