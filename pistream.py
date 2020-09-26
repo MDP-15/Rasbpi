@@ -34,10 +34,8 @@ class PiVideoStream(ServerInterface):
 
         time.sleep(2.0)
 
-        if save:
-            self.stream = self.camera.capture_continuous(f'/home/pi/Desktop/recording/recording.h264', format="bgr", use_video_port=True)
-        else:
-            self.stream = self.camera.capture_continuous(self.raw_capture, format="bgr", use_video_port=True)
+
+        self.stream = self.camera.capture_continuous(self.raw_capture, format="bgr", use_video_port=True)
 
         self.frame = None
         self.stopped = False
