@@ -115,7 +115,7 @@ def stream():
         camera.start_recording(output, format='mjpeg')
 
         try:
-            address = ('192.168.15.1', 8000)
+            address = ('192.168.15.1', 8008)
             s = StreamingServer(address, StreamingHandler)
             s.serve_forever()
 
