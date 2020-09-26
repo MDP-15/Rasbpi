@@ -12,10 +12,8 @@ while True:
     out.write(frame)
     cv2.imshow("Recording", frame)
 
-    k = cv2.waitKey(0)
-    if k == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
 
 out.release()
 
