@@ -70,9 +70,9 @@ class PcConn(ServerInterface):
 
     def write(self, message):
         try:
-            #message = str(message)
-            #byte_msg: bytes = str.encode(message + '\n')
-            self.client.sendto(message, self.addr)
+            message = str(message)
+            byte_msg: bytes = str.encode(message + '\n')
+            self.client.sendto(byte_msg, self.addr)
             print(f'Sent to PC: {message}')
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')

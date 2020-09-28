@@ -159,4 +159,4 @@ class PiHttpStream(ServerInterface):
     def read(self):
         label = queue.get()
         print(f'Received from POST request: {label}')
-        return str(label)
+        return label
