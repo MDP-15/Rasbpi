@@ -1,11 +1,12 @@
-import threading
+# import threading
 from tcp import PcConn
 from bt import BluetoothConn
 from usb import ArduinoConn
-from queue import Queue
+# from queue import Queue
 from producer_consumer import ProducerConsumer
 from config import ProjectConfig
 from camera import PiHttpStream
+from multiprocessing import Queue, Process
 
 
 thread_queue = Queue()
@@ -19,7 +20,7 @@ def run_all(servers):
 # Create worker threads
 def create_workers(num):
     for _ in range(num):
-        t = threading.Thread(target=work, daemon=True)
+        t = Process(target=work, daemon=True)
         t.start()
 
 
@@ -45,6 +46,7 @@ if __name__ == '__main__':
     pc_server = ProducerConsumer(PcConn(config))
     cam_server = ProducerConsumer(PiHttpStream(config))
 
+    # register observers to each server
     pc_server.register([bt_server, usb_server])
     bt_server.register([pc_server, usb_server])
     usb_server.register([bt_server, pc_server])
