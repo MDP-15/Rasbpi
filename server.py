@@ -2,28 +2,39 @@
 from tcp import PcConn
 from bt import BluetoothConn
 from usb import ArduinoConn
-# from queue import Queue
+from queue import Queue
 from producer_consumer import ProducerConsumer
 from config import ProjectConfig
 from camera import PiHttpStream
-from multiprocessing import Queue, Process
+from multiprocessing import Process
 
 
-procs = []
+thread_queue = Queue()
 
 
 def run_all(servers):
-    create_process(servers)
+    create_workers(len(servers))
+    create_jobs(servers)
 
 
-def create_process(servers):
-    for s in servers:
-        t = Process(target=s.start, daemon=True)
-        procs.append(t)
+# Create worker threads
+def create_workers(num):
+    for _ in range(num):
+        t = Process(target=work, daemon=True)
         t.start()
 
-    for p in procs:
-        p.join()
+
+# Put job list into queue
+def create_jobs(servers):
+    for s in servers:
+        thread_queue.put(s)
+    thread_queue.join()  # blocks until task_done is called
+
+
+# Do next job that is in the queue
+def work():
+    s = thread_queue.get()
+    s.start()
 
 
 if __name__ == '__main__':
