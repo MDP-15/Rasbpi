@@ -3,13 +3,17 @@
 # http://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
 
 import io
-import picamera
 import logging
 import socketserver
 from threading import Condition
 from http import server
 import json
 import cgi
+import time
+from interface import ServerInterface
+from picamera import PiCamera
+from config import ProjectConfig
+from queue import Queue
 
 PAGE = """\
 <html>
@@ -53,7 +57,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             length = int(self.headers["Content-Length"])
             raw_message = self.rfile.read(length)
             message = json.loads(raw_message)
-            print(message['label'])
+            queue.put(message['label'])
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
@@ -107,17 +111,65 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 
 
 output = StreamingOutput()
+queue = Queue()
 
 
-def stream():
-    with picamera.PiCamera(resolution='640x480', framerate=30) as camera:
-        # camera.rotation = 90
-        camera.start_recording(output, format='mjpeg')
+# def stream():
+#     with picamera.PiCamera(resolution='640x480', framerate=30) as camera:
+#         # camera.rotation = 90
+#         camera.start_recording(output, format='mjpeg')
+#
+#         try:
+#             address = ('192.168.15.1', 8008)
+#             s = StreamingServer(address, StreamingHandler)
+#             s.serve_forever()
+#
+#         finally:
+#             camera.stop_recording()
 
+
+class PiHttpStream(ServerInterface):
+    def get_name(self) -> str:
+        return format(f'picamera http connection')
+
+    def connect(self):
         try:
-            address = ('192.168.15.1', 8008)
-            s = StreamingServer(address, StreamingHandler)
-            s.serve_forever()
+            self.server = StreamingServer(self.address, StreamingHandler)
+            self.server.serve_forever()
+            self._connected = True
+            print(f'Server started on {self.server.server_address}')
+        except Exception as e:
+            print(f'Error with {self.get_name()}: {e}')
+            self.disconnect()
+            raise ConnectionError
 
-        finally:
-            camera.stop_recording()
+    def disconnect(self):
+        if self.server:
+            self.server.server_close()
+
+        self._connected = False
+
+    def is_connected(self) -> bool:
+        return self._connected
+
+    def write(self, message):
+        pass
+
+    def __init__(self, config: ProjectConfig):
+        # initialize the camera and stream
+        self.camera = PiCamera()
+        self.camera.resolution = (int(config.get('RES_WIDTH')), int(config.get('RES_HEIGHT')))
+        self.camera.framerate = int(config.get('FRAMERATE'))
+
+        self.server = None
+        self.address = (config.get('IP_ADDRESS'), int(config.get('PICAM_PORT')))
+
+        time.sleep(2.0)
+
+        self.camera.start_recording(output, format='mjpeg')
+        self._connected = False
+
+    def read(self):
+        label = queue.get()
+        print(f'Label read: {label}')
+        return label
