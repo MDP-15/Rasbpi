@@ -9,32 +9,21 @@ from camera import PiHttpStream
 from multiprocessing import Queue, Process
 
 
-thread_queue = Queue()
+procs = []
 
 
 def run_all(servers):
-    create_workers(len(servers))
-    create_jobs(servers)
+    create_process(servers)
 
 
-# Create worker threads
-def create_workers(num):
-    for _ in range(num):
-        t = Process(target=work, daemon=True)
+def create_process(servers):
+    for s in servers:
+        t = Process(target=s.start, daemon=True)
+        procs.append(t)
         t.start()
 
-
-# Put job list into queue
-def create_jobs(servers):
-    for s in servers:
-        thread_queue.put(s)
-    thread_queue.join()  # blocks until task_done is called
-
-
-# Do next job that is in the queue
-def work():
-    s = thread_queue.get()
-    s.start()
+    for p in procs:
+        p.join()
 
 
 if __name__ == '__main__':
