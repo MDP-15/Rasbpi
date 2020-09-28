@@ -5,6 +5,7 @@
 import io
 import logging
 import socketserver
+import threading
 from threading import Condition
 from http import server
 import json
@@ -114,20 +115,6 @@ output = StreamingOutput()
 queue = Queue()
 
 
-# def stream():
-#     with picamera.PiCamera(resolution='640x480', framerate=30) as camera:
-#         # camera.rotation = 90
-#         camera.start_recording(output, format='mjpeg')
-#
-#         try:
-#             address = ('192.168.15.1', 8008)
-#             s = StreamingServer(address, StreamingHandler)
-#             s.serve_forever()
-#
-#         finally:
-#             camera.stop_recording()
-
-
 class PiHttpStream(ServerInterface):
     def get_name(self) -> str:
         return format(f'picamera http connection')
@@ -135,7 +122,7 @@ class PiHttpStream(ServerInterface):
     def connect(self):
         try:
             self.server = StreamingServer(self.address, StreamingHandler)
-            self.server.serve_forever()
+            threading.Thread(target=self.server.serve_forever, daemon=True).start()
             self._connected = True
             print(f'Server started on {self.server.server_address}')
         except Exception as e:
@@ -171,5 +158,5 @@ class PiHttpStream(ServerInterface):
 
     def read(self):
         label = queue.get()
-        print(f'Label read: {label}')
+        print(f'Received from POST request: {label}')
         return label
