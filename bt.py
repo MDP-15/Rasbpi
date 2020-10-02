@@ -71,6 +71,7 @@ class BluetoothConn(ServerInterface):
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
             print('Reconnecting...')
+            self.disconnect()
             raise ConnectionError
 
     def disconnect(self):

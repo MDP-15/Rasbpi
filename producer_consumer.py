@@ -19,7 +19,7 @@ class ProducerConsumer(object):
         count = 0
         while True:
             count += 1
-            if count == 2:
+            if count > 2:
                 print(f'{self.name}: max number of reconnections exceeded.')
                 break
             try:
