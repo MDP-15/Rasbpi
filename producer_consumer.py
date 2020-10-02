@@ -43,11 +43,12 @@ class ProducerConsumer(object):
 
     def write_listen(self):
         while True:
+            if not self.server.is_connected():
+                break
             try:
-                if not self.server.is_connected():
-                    break
                 data = self.get_data()
-                self.server.write(data)
+                if data is not None:
+                    self.server.write(data)
             except ConnectionError:
                 break
 
@@ -64,6 +65,8 @@ class ProducerConsumer(object):
         self.observers.extend(items)
 
     def get_data(self):
+        if self.q.empty():
+            return None
         data = self.q.get()
-        self.q.task_done()
+        #self.q.task_done()
         return data
