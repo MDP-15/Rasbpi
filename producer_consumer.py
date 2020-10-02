@@ -3,6 +3,10 @@ from interface import ServerInterface
 from threading import Thread
 
 
+def spawn_thread(target) -> Thread:
+    return Thread(target=target, daemon=True)
+
+
 class ProducerConsumer(object):
 
     def __init__(self, server: ServerInterface):
@@ -11,14 +15,11 @@ class ProducerConsumer(object):
         self.observers = []
         self.name = self.server.get_name()
 
-    def spawn_thread(self, target) -> Thread:
-        return Thread(target=target, daemon=True)
-
     def start(self):
         try:
             self.server.connect()
-            read = self.spawn_thread(self.read_listen)
-            write = self.spawn_thread(self.write_listen)
+            read = spawn_thread(self.read_listen)
+            write = spawn_thread(self.write_listen)
             read.start()
             write.start()
         except ConnectionError:
@@ -53,3 +54,4 @@ class ProducerConsumer(object):
         data = self.q.get()
         self.q.task_done()
         return data
+
