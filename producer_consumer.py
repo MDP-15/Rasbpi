@@ -3,6 +3,10 @@ from interface import ServerInterface
 from threading import Thread
 
 
+def spawn_thread(target) -> Thread:
+    return Thread(target=target, daemon=True)
+
+
 class ProducerConsumer(object):
 
     def __init__(self, server: ServerInterface):
@@ -11,28 +15,42 @@ class ProducerConsumer(object):
         self.observers = []
         self.name = self.server.get_name()
 
-    def spawn_thread(self, target) -> Thread:
-        return Thread(target=target, daemon=True)
-
     def start(self):
-        self.server.connect()
-        read = self.spawn_thread(self.read_listen)
-        write = self.spawn_thread(self.write_listen)
-        read.start()
-        write.start()
+        count = 0
+        while True:
+            count += 1
+            if count > 2:
+                print(f'{self.name}: max number of reconnections exceeded.')
+                break
+            try:
+                self.server.connect()
+                read = spawn_thread(self.read_listen)
+                write = spawn_thread(self.write_listen)
+                read.start()
+                write.start()
+                read.join()
+                write.join()
+            except ConnectionError:
+                print(f'{self.name}: connection ended')
 
     def read_listen(self):
         while True:
-            data = self.server.read()
-            if data is not None:
+            try:
+                data = self.server.read()
                 self.notify_observers(data)
-            else:
-                continue
+            except ConnectionError:
+                break
 
     def write_listen(self):
         while True:
-            data = self.get_data()
-            self.server.write(data)
+            if not self.server.is_connected():
+                break
+            try:
+                data = self.get_data()
+                if data is not None:
+                    self.server.write(data)
+            except ConnectionError:
+                break
 
     # notify every job subscribed to this server that data has been read from the client
     def notify_observers(self, data):
@@ -47,6 +65,8 @@ class ProducerConsumer(object):
         self.observers.extend(items)
 
     def get_data(self):
+        if self.q.empty():
+            return None
         data = self.q.get()
-        self.q.task_done()
+        #self.q.task_done()
         return data
