@@ -54,19 +54,14 @@ class PcConn(ServerInterface):
             data = self.client.recv(1024)  # reads data from the socket in batches of 1024 bytes
             data = data.decode('utf-8')
             if not data:
-                self.disconnect()
-                print('No transmission. Connection ended.')
-                print('Reconnecting...')
-                self.connect()
-                return None
+                raise ConnectionError('No transmission')
             print(f'Received from PC: {data.rstrip()}')
             return self.format_data(data)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
             print('Reconnecting...')
-            self.connect()
-            return None
+            raise ConnectionError
 
     def write(self, message):
         try:
@@ -77,7 +72,7 @@ class PcConn(ServerInterface):
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
             print('Reconnecting...')
-            self.connect()
+            raise ConnectionError
 
 
 if __name__ == '__main__':

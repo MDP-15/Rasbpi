@@ -1,5 +1,4 @@
 import serial
-import time
 from interface import ServerInterface
 from config import ProjectConfig
 
@@ -18,17 +17,14 @@ class ArduinoConn(ServerInterface):
     def connect(self):
         # Create socket for the serial port
         print(f'Waiting for a {self.get_name()}...')
-        #while not self._connected:
         try:
             self.conn = serial.Serial(self.port, self.baud_rate)
             self._connected = True
             print(f'Connected to {self.conn.name}')
-            #continue
         except Exception as e:
             print(f'Error with {self.get_name()}: {e}')
             self.disconnect()
             raise ConnectionError
-            #print("Retrying Arduino Connection...")
 
     def is_connected(self) -> bool:
         return self._connected
@@ -39,6 +35,8 @@ class ArduinoConn(ServerInterface):
             print(f'Sent to Arduino: {message}')
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
+            print('Reconnecting...')
+            raise ConnectionError
 
     def read(self):
         try:
@@ -46,10 +44,12 @@ class ArduinoConn(ServerInterface):
             if data != b'\x00':
                 data = str(data.decode('utf-8')).strip()
                 print(f'Received from Arduino: {data}')
-                return data
+                return self.format_data(data)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
+            print('Reconnecting...')
+            raise ConnectionError
 
     def disconnect(self):
         if self.conn:
