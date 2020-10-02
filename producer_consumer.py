@@ -18,6 +18,7 @@ class ProducerConsumer(object):
     def start(self):
         count = 0
         while True:
+            count += 1
             if count == 2:
                 print(f'{self.name}: max number of reconnections exceeded.')
                 break
@@ -64,4 +65,3 @@ class ProducerConsumer(object):
         data = self.q.get()
         self.q.task_done()
         return data
-
