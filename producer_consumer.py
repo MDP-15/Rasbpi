@@ -44,6 +44,8 @@ class ProducerConsumer(object):
     def write_listen(self):
         while True:
             try:
+                if not self.server.is_connected():
+                    break
                 data = self.get_data()
                 self.server.write(data)
             except ConnectionError:
