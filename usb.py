@@ -29,9 +29,11 @@ class ArduinoConn(ServerInterface):
     def is_connected(self) -> bool:
         return self._connected
 
+    #Extract out message here to send only message to robot
     def write(self, message):
         try:
-            self.conn.write(str.encode(message))
+            message_value = message.get('RI')
+            self.conn.write(bytes(message_value, encoding = 'utf-8'))
             print(f'Sent to Arduino: {message}')
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
@@ -44,8 +46,10 @@ class ArduinoConn(ServerInterface):
             data = self.conn.readline()
             if data != b'\x00':
                 data = str(data.decode('utf-8')).strip()
+                data_dict = {'MDP15': 'SD', 'SD': data}
+                
                 print(f'Received from Arduino: {data}')
-                return self.format_data(data)
+                return self.format_data(data_dict)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')

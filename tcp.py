@@ -1,6 +1,7 @@
 import socket
 from interface import ServerInterface
 from config import ProjectConfig
+import json
 
 
 class PcConn(ServerInterface):
@@ -52,11 +53,14 @@ class PcConn(ServerInterface):
     def read(self):
         try:
             data = self.client.recv(1024)  # reads data from the socket in batches of 1024 bytes
-            data = data.decode('utf-8')
+            #data = data.decode('utf-8')
+            data_dict = json.loads(data)
             if not data:
                 raise ConnectionError('No transmission')
-            print(f'Received from PC: {data.rstrip()}')
-            return self.format_data(data)
+            print(f'Received from PC: {data}')
+            #print(f'Type of data is {type(data)}')
+            #print(f'Type of data_dict is {type(data_dict)}')
+            return self.format_data(data_dict)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
@@ -66,8 +70,10 @@ class PcConn(ServerInterface):
 
     def write(self, message):
         try:
-            message = str(message)
-            byte_msg: bytes = str.encode(message + '\n')
+            #message = str(message)
+            #byte_msg: bytes = str.encode(message + '\n')
+            json_str = json.dumps(message)
+            byte_msg = bytes(json_str, encoding='utf-8') 
             self.client.sendto(byte_msg, self.addr)
             print(f'Sent to PC: {message}')
         except Exception as e:
@@ -78,5 +84,9 @@ class PcConn(ServerInterface):
 
 
 if __name__ == '__main__':
-    server = PcConn(ProjectConfig())
+    server = PcConn(ProjectConfig(IP_ADDRESS = 'localhost'))
     server.connect()
+    Robot_Position = '{"A15":"RP","X":1,"Y":1,"O":"Right"}' #to algo
+    RP = json.loads(Robot_Position)   
+    while True:
+        server.write(RP)

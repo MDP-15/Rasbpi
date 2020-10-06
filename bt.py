@@ -2,6 +2,7 @@ from bluetooth import BluetoothSocket
 import bluetooth
 from interface import ServerInterface
 from config import ProjectConfig
+import json
 
 
 class BluetoothConn(ServerInterface):
@@ -50,11 +51,15 @@ class BluetoothConn(ServerInterface):
     def read(self):
         try:
             data = self.client.recv(1024)
-            data = data.decode('utf-8')
+            #data = data.decode('utf-8')
+            #print(f'Received from Android device: {data}')
+            #print(f'Type of data is {type(data)}')
+            #print(f'Type of data_dict is {type(data_dict)}')
             if not data:
                 raise ConnectionError('No transmission')
+            data_dict = json.loads(data)
             print(f'Received from Android device: {data}')
-            return self.format_data(data)
+            return self.format_data(data_dict)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
@@ -64,9 +69,10 @@ class BluetoothConn(ServerInterface):
 
     def write(self, message):
         try:
-            message = str(message)
-            self.client.send(message)
-            print(f'Sent to Android device: {message}')
+            json_str = json.dumps(message)
+            byte_msg = bytes(json_str, encoding='utf-8')
+            self.client.send(byte_msg)
+            print(f'Sent to Android device: {byte_msg}')
 
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
