@@ -89,13 +89,17 @@ class ProducerConsumer(object):
 
         print(self.observers)
         print(len(self.observers))
+        count = 0
         for s in self.observers:
+            count += 1
+            print('count', count)
             #print(s)
             #s.get_name()
             print(s.tags)
             #continue
             #s.put_data(data)
             #print(f'tag is {s.get_tags()}')
+            print('boolean ', 'ROBOT' in s.tags)
             if 'ROBOT' in s.tags:  # send to Robot
                 print('HALO INSIDE ROBOT')
                 if inst == 'RI':
