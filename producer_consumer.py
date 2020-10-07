@@ -91,7 +91,6 @@ class ProducerConsumer(object):
         print(len(self.observers))
         count = 1
         for s in self.observers:
-            print('count', count)
             #print(s)
             #s.get_name()
             print(s.tags)
@@ -120,6 +119,7 @@ class ProducerConsumer(object):
                  #   continue
 
             count += 1
+            print('count', count)
 
     # put data into queue
     def put_data(self, data):
