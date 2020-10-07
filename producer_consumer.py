@@ -108,6 +108,7 @@ class ProducerConsumer(object):
 
             elif 'ANDROID' in s.tags:  # send to Android
                 print('HALO INSIDE ANDROID')
+                print('8888')
                 if inst.startwith('MDF') or inst == 'STATUS':
                     print('----')
                     s.put_data(data)
@@ -115,7 +116,6 @@ class ProducerConsumer(object):
                     print('===')# movement completed; dequeue instructions and send to Android
                     val = self.instructions.popleft()
                     s.put_data({'MDP15': 'FP', 'FP': val})
-                print('8888')
 
             elif 'ALGO' in s.tags:  # send to Algo
                 #if inst == 'SENSORS':
