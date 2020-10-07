@@ -86,6 +86,7 @@ class ProducerConsumer(object):
             return
 
         for s in self.observers:
+            print(s.get_tags())
             if 'ROBOT' in s.get_tags():  # send to Robot
                 if inst == 'RI':
                     s.put_data(data)
