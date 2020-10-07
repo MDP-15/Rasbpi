@@ -29,6 +29,7 @@ class ProducerConsumer(object):
         self.name = self.server.get_name()
         self.cache = {}
         self.instructions = deque()
+        self.tags = server.get_tags()
 
     def start(self):
         count = 0
@@ -89,19 +90,19 @@ class ProducerConsumer(object):
         print(self.observers)
         print(len(self.observers))
         for s in self.observers:
-            print(s)
-            s.get_name()
-            s.get_tags()
-            s.put_data(data)
-            print(f'tag is {s.get_tags()}')
-            if 'ROBOT' in s.get_tags():  # send to Robot
+            #print(s)
+            #s.get_name()
+            print(s.tags)
+            #s.put_data(data)
+            #print(f'tag is {s.get_tags()}')
+            if 'ROBOT' in s.tags:  # send to Robot
                 if inst == 'RI':
                     s.put_data(data)
                 elif inst == 'SF':  # start fastest path; get the cached value and send to Robot
                     s.put_data(self.cache.get('FP'))
                 continue
 
-            if 'ANDROID' in s.get_tags():  # send to Android
+            if 'ANDROID' in s.tags:  # send to Android
                 if inst.startwith('MDF') or inst == 'STATUS':
                     s.put_data(data)
                 elif inst == 'MC':  # movement completed; dequeue instructions and send to Android
@@ -109,7 +110,7 @@ class ProducerConsumer(object):
                     s.put_data({'MDP15': 'FP', 'FP': val})
                 continue
 
-            if 'ALGO' in s.get_tags():  # send to Algo
+            if 'ALGO' in s.tags:  # send to Algo
                 #if inst == 'SENSORS':
                 s.put_data(data)  # temporarily send all data to Algo
                  #   continue
