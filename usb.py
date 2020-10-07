@@ -25,8 +25,8 @@ class ArduinoConn(ServerInterface):
             self._connected = True
             print(f'Connected to {self.conn.name}')
         except Exception as e:
-            print(f'Error with {self.get_name()}: {e}')
-            #self.disconnect()
+            print(f'Error with connection attempt for {self.get_name()}: {e}')
+            self.disconnect()
             raise ConnectionError
 
     def is_connected(self) -> bool:
@@ -37,11 +37,15 @@ class ArduinoConn(ServerInterface):
             message_value = message.get('RI')  # get Robot Instruction
             self.conn.write(bytes(message_value, encoding='utf-8'))
             print(f'Sent to Arduino: {message}')
-        except Exception as e:
-            print(f'Error with writing {message} to {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
+
+        except serial.SerialException as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
             raise ConnectionError
+        except Exception as e:
+            print(f'Error with writing to {self.get_name()}: {e}')
+            raise e
 
     def read(self):
         try:
@@ -60,11 +64,14 @@ class ArduinoConn(ServerInterface):
                 print(f'Received from Arduino: {data}')
                 return self.format_data(data_dict)
 
+        except serial.SerialException as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
+            raise ConnectionError
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
-            raise ConnectionError
+            raise e
 
     def disconnect(self):
         if self.conn:

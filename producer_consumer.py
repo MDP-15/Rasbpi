@@ -55,6 +55,8 @@ class ProducerConsumer(object):
                 self.notify_observers(data)
             except ConnectionError:
                 break
+            except Exception:
+                continue
 
     def write_listen(self):
         while True:
@@ -66,6 +68,8 @@ class ProducerConsumer(object):
                     self.server.write(data)
             except ConnectionError:
                 break
+            except Exception:
+                continue
 
     # notify relevant subscribers subscribed to this server that data has been read from the client
     def notify_observers(self, data):

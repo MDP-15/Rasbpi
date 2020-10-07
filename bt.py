@@ -1,4 +1,4 @@
-from bluetooth import BluetoothSocket
+from bluetooth import BluetoothSocket, BluetoothError
 import bluetooth
 from interface import ServerInterface
 from config import ProjectConfig
@@ -47,7 +47,7 @@ class BluetoothConn(ServerInterface):
             self._connected = True
 
         except Exception as e:
-            print(f'Error with {self.get_name()}: {e}')
+            print(f'Error with connection attempt for {self.get_name()}: {e}')
             self.disconnect()
             raise ConnectionError
 
@@ -60,11 +60,15 @@ class BluetoothConn(ServerInterface):
             data_dict = json.loads(data)
             print(f'Received from Android device: {data}')
             return self.format_data(data_dict)
+
+        except BluetoothError as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
+            raise ConnectionError
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
-            #raise ConnectionError
+            raise e
 
     def write(self, message):
         try:
@@ -73,11 +77,14 @@ class BluetoothConn(ServerInterface):
             self.client.send(byte_msg)
             print(f'Sent to Android device: {byte_msg}')
 
-        except Exception as e:
-            print(f'Error with writing {message} to {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
+        except BluetoothError as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
             raise ConnectionError
+        except Exception as e:
+            print(f'Error with writing to {self.get_name()}: {e}')
+            raise e
 
     def disconnect(self):
         if self.conn:

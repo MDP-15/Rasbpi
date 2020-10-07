@@ -4,7 +4,6 @@ from config import ProjectConfig
 import json
 import time
 
-
 class PcConn(ServerInterface):
 
     def __init__(self, config: ProjectConfig):
@@ -50,27 +49,28 @@ class PcConn(ServerInterface):
             self._connected = True
 
         except Exception as e:
-            print(f'Error with {self.get_name()}: {e}')
-            #self.disconnect()
+            print(f'Error with connection attempt for {self.get_name()}: {e}')
+            self.disconnect()
             raise ConnectionError
 
     def read(self):
         try:
             data = self.client.recv(1024)  # reads data from the socket in batches of 1024 bytes
             #data = data.decode('utf-8')
-            #print(f'Type of data is {type(data)}')
-            #print(f'Type of data_dict is {type(data_dict)}')
             if not data:
                 raise ConnectionError('No transmission')
             data_dict = json.loads(data)
             print(f'Received from PC: {data}')
             return self.format_data(data_dict)
 
+        except socket.error as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
+            raise ConnectionError
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
-            #raise ConnectionError
+            raise e
 
     def write(self, message):
         try:
@@ -80,11 +80,15 @@ class PcConn(ServerInterface):
             byte_msg = bytes(json_str, encoding='utf-8') 
             self.client.sendto(byte_msg, self.addr)
             print(f'Sent to PC: {message}')
-        except Exception as e:
-            print(f'Error with writing {message} to {self.get_name()}: {e}')
-            #print('Reconnecting...')
-            #self.disconnect()
+
+        except socket.error as e:
+            print(f'IO Error with {self.get_name()}: {e}')
+            print('Reconnecting...')
+            self.disconnect()
             raise ConnectionError
+        except Exception as e:
+            print(f'Error with writing to {self.get_name()}: {e}')
+            raise e
 
 
 if __name__ == '__main__':
