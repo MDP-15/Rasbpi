@@ -19,6 +19,9 @@ class PcConn(ServerInterface):
     def get_name(self) -> str:
         return format(f'TCP connection on {self.ip_address}:{self.port}')
 
+    def get_tags(self) -> dict:
+        return {'TCP': True, 'PC': True, 'ALGO': True}
+
     def disconnect(self):
         if self.conn:
             self.conn.close()
