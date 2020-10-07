@@ -8,6 +8,10 @@ class ServerInterface(ABC):
         return ""
 
     @abstractmethod
+    def get_tags(self) -> dict:
+        return {}
+
+    @abstractmethod
     def connect(self):
         return False
 
