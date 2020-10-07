@@ -56,8 +56,6 @@ class ProducerConsumer(object):
                 self.notify_observers(data)
             except ConnectionError:
                 break
-            except Exception:
-                continue
 
     def write_listen(self):
         while True:
@@ -78,7 +76,6 @@ class ProducerConsumer(object):
             return
 
         inst = data.get('MDP15')
-        # print(f'value is {inst}')
 
         # special case for fastest path string
         if inst == 'FP':
@@ -116,9 +113,11 @@ class ProducerConsumer(object):
                     val = self.instructions.popleft()
                     s.put_data({'MDP15': 'FP', 'FP': val})
 
-            elif 'ALGO' in s.tags:  # send to Algo
-                #if inst == 'SENSORS':
-                s.put_data(data)  # temporarily send all data to Algo
+                continue
+
+            if 'ALGO' in s.get_tags():  # send to Algo
+                if inst == 'SENSORS':
+                    s.put_data(data)  # temporarily send all data to Algo
                  #   continue
 
             #count += 1
