@@ -14,6 +14,9 @@ class ArduinoConn(ServerInterface):
     def get_name(self) -> str:
         return format(f'USB connection on {self.port}')
 
+    def get_tags(self) -> dict:
+        return {'USB': True, 'ROBOT': True, 'ARDUINO': True}
+
     def connect(self):
         # Create socket for the serial port
         print(f'Waiting for a {self.get_name()}...')
@@ -22,7 +25,7 @@ class ArduinoConn(ServerInterface):
             self._connected = True
             print(f'Connected to {self.conn.name}')
         except Exception as e:
-            print(f'Error with {self.get_name()}: {e}')
+            print(f'Error with connection attempt for {self.get_name()}: {e}')
             self.disconnect()
             raise ConnectionError
 
@@ -31,27 +34,44 @@ class ArduinoConn(ServerInterface):
 
     def write(self, message):
         try:
-            self.conn.write(str.encode(message))
+            message_value = message.get('RI')  # get Robot Instruction
+            self.conn.write(bytes(message_value, encoding='utf-8'))
             print(f'Sent to Arduino: {message}')
-        except Exception as e:
-            print(f'Error with writing {message} to {self.get_name()}: {e}')
+
+        except serial.SerialException as e:
+            print(f'IO Error with {self.get_name()}: {e}')
             print('Reconnecting...')
             self.disconnect()
             raise ConnectionError
+        except Exception as e:
+            print(f'Error with writing to {self.get_name()}: {e}')
+            raise e
 
     def read(self):
         try:
             data = self.conn.readline()
             if data != b'\x00':
                 data = str(data.decode('utf-8')).strip()
-                print(f'Received from Arduino: {data}')
-                return self.format_data(data)
 
-        except Exception as e:
-            print(f'Error with reading from {self.get_name()}: {e}')
+                # wrap data in a JSON format
+                if data[0].isnumeric():
+                    data_dict = {'MDP15': 'SENSORS', 'SENSORS': data}
+                elif data == 'MC':
+                    data_dict = {'MDP15': 'MC'}
+                else:
+                    data_dict = {'MDP15': 'STATUS', 'STATUS': data}
+
+                print(f'Received from Arduino: {data}')
+                return self.format_data(data_dict)
+
+        except serial.SerialException as e:
+            print(f'IO Error with {self.get_name()}: {e}')
             print('Reconnecting...')
             self.disconnect()
             raise ConnectionError
+        except Exception as e:
+            print(f'Error with reading from {self.get_name()}: {e}')
+            raise e
 
     def disconnect(self):
         if self.conn:

@@ -8,6 +8,10 @@ class ServerInterface(ABC):
         return ""
 
     @abstractmethod
+    def get_tags(self) -> dict:
+        return {}
+
+    @abstractmethod
     def connect(self):
         return False
 
@@ -27,6 +31,6 @@ class ServerInterface(ABC):
     def write(self, message):
         pass
 
-    def format_data(self, data) -> str:
+    def format_data(self, data):
         # return format(f'data from {self.get_name()} at {datetime.now()}: {data}')
         return data
