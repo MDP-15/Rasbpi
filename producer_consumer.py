@@ -87,46 +87,42 @@ class ProducerConsumer(object):
             self.instructions = split_fp(val)
             return
 
-        print(self.observers)
-        print(len(self.observers))
-        count = 1
-        for i in range(len(self.observers)):
-            s = self.observers[i]
+        #print(self.observers)
+        #print(len(self.observers))
+        #count = 1
+        for s in self.observers:
             #print(s)
             #s.get_name()
-            print(s.tags)
+            #print(s.tags)
             #continue
             #s.put_data(data)
             #print(f'tag is {s.get_tags()}')
-            print('boolean ', 'ROBOT' in s.tags)
+            #print('boolean ', 'ROBOT' in s.tags)
             if 'ROBOT' in s.tags:  # send to Robot
-                print('HALO INSIDE ROBOT')
+                #print('HALO INSIDE ROBOT')
                 if inst == 'RI':
                     s.put_data(data)
                 elif inst == 'SF':  # start fastest path; get the cached value and send to Robot
                     s.put_data(self.cache.get('FP'))
 
             elif 'ANDROID' in s.tags:  # send to Android
-                print('HALO INSIDE ANDROID')
-                print('8888')
-                try:
-                    if inst.startwith('MDF') or inst == 'STATUS':
-                        print('----')
-                        s.put_data(data)
-                    elif inst == 'MC':
-                        print('===')# movement completed; dequeue instructions and send to Android
-                        val = self.instructions.popleft()
-                        s.put_data({'MDP15': 'FP', 'FP': val})
-                except Exception as e:
-                    print(e)
+                #print('HALO INSIDE ANDROID')
+                #print('8888')
+                if inst.startswith('MDF') or inst == 'STATUS':
+                    #print('----')
+                    s.put_data(data)
+                elif inst == 'MC':  # movement completed; dequeue instructions and send to Android
+                    #print('===')
+                    val = self.instructions.popleft()
+                    s.put_data({'MDP15': 'FP', 'FP': val})
 
             elif 'ALGO' in s.tags:  # send to Algo
                 #if inst == 'SENSORS':
                 s.put_data(data)  # temporarily send all data to Algo
                  #   continue
 
-            count += 1
-            print('count', count)
+            #count += 1
+            #print('count', count)
 
     # put data into queue
     def put_data(self, data):
