@@ -23,7 +23,7 @@ class ArduinoConn(ServerInterface):
             print(f'Connected to {self.conn.name}')
         except Exception as e:
             print(f'Error with {self.get_name()}: {e}')
-            self.disconnect()
+            #self.disconnect()
             raise ConnectionError
 
     def is_connected(self) -> bool:
@@ -37,8 +37,8 @@ class ArduinoConn(ServerInterface):
             print(f'Sent to Arduino: {message}')
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
+            #print('Reconnecting...')
+            #self.disconnect()
             raise ConnectionError
 
     def read(self):
@@ -53,8 +53,8 @@ class ArduinoConn(ServerInterface):
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
+            #print('Reconnecting...')
+            #self.disconnect()
             raise ConnectionError
 
     def disconnect(self):

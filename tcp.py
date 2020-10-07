@@ -2,6 +2,7 @@ import socket
 from interface import ServerInterface
 from config import ProjectConfig
 import json
+import time
 
 
 class PcConn(ServerInterface):
@@ -47,26 +48,26 @@ class PcConn(ServerInterface):
 
         except Exception as e:
             print(f'Error with {self.get_name()}: {e}')
-            self.disconnect()
+            #self.disconnect()
             raise ConnectionError
 
     def read(self):
         try:
             data = self.client.recv(1024)  # reads data from the socket in batches of 1024 bytes
             #data = data.decode('utf-8')
-            data_dict = json.loads(data)
-            if not data:
-                raise ConnectionError('No transmission')
-            print(f'Received from PC: {data}')
             #print(f'Type of data is {type(data)}')
             #print(f'Type of data_dict is {type(data_dict)}')
+            if not data:
+                raise ConnectionError('No transmission')
+            data_dict = json.loads(data)
+            print(f'Received from PC: {data}')
             return self.format_data(data_dict)
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
-            raise ConnectionError
+            #print('Reconnecting...')
+            #self.disconnect()
+            #raise ConnectionError
 
     def write(self, message):
         try:
@@ -78,15 +79,17 @@ class PcConn(ServerInterface):
             print(f'Sent to PC: {message}')
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
+            #print('Reconnecting...')
+            #self.disconnect()
             raise ConnectionError
 
 
 if __name__ == '__main__':
-    server = PcConn(ProjectConfig(IP_ADDRESS = 'localhost'))
+    server = PcConn(ProjectConfig(default=False))
     server.connect()
-    Robot_Position = '{"A15":"RP","X":1,"Y":1,"O":"Right"}' #to algo
+    Robot_Position = '{"MDP15":"SENSORS","SENSORS":"0;0;0;0;0;0"}' #to algo
     RP = json.loads(Robot_Position)   
     while True:
         server.write(RP)
+        server.read()
+        time.sleep(2)

@@ -63,9 +63,9 @@ class BluetoothConn(ServerInterface):
 
         except Exception as e:
             print(f'Error with reading from {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
-            raise ConnectionError
+            #print('Reconnecting...')
+            #self.disconnect()
+            #raise ConnectionError
 
     def write(self, message):
         try:
@@ -76,8 +76,8 @@ class BluetoothConn(ServerInterface):
 
         except Exception as e:
             print(f'Error with writing {message} to {self.get_name()}: {e}')
-            print('Reconnecting...')
-            self.disconnect()
+            #print('Reconnecting...')
+            #self.disconnect()
             raise ConnectionError
 
     def disconnect(self):
