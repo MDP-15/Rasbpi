@@ -89,9 +89,8 @@ class ProducerConsumer(object):
 
         print(self.observers)
         print(len(self.observers))
-        count = 0
+        count = 1
         for s in self.observers:
-            count += 1
             print('count', count)
             #print(s)
             #s.get_name()
@@ -119,6 +118,8 @@ class ProducerConsumer(object):
                 #if inst == 'SENSORS':
                 s.put_data(data)  # temporarily send all data to Algo
                  #   continue
+
+            count += 1
 
     # put data into queue
     def put_data(self, data):
