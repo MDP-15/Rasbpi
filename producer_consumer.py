@@ -90,7 +90,8 @@ class ProducerConsumer(object):
         print(self.observers)
         print(len(self.observers))
         count = 1
-        for s in self.observers:
+        for i in range(len(self.observers)):
+            s = self.observers[i]
             #print(s)
             #s.get_name()
             print(s.tags)
