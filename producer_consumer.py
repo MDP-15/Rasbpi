@@ -73,12 +73,11 @@ class ProducerConsumer(object):
 
     # notify relevant subscribers subscribed to this server that data has been read from the client
     def notify_observers(self, data):
-        print('MDP15' not in data)
         if 'MDP15' not in data:  # only parse json with this key value
             return
 
         inst = data.get('MDP15')
-        print(f'value is {inst}')
+        # print(f'value is {inst}')
 
         # special case for fastest path string
         if inst == 'FP':
@@ -87,6 +86,7 @@ class ProducerConsumer(object):
             self.instructions = split_fp(val)
             return
 
+        print(self.observers)
         for s in self.observers:
             print(f'tag is {s.get_tags()}')
             if 'ROBOT' in s.get_tags():  # send to Robot
