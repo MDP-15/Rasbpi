@@ -115,7 +115,7 @@ class ProducerConsumer(object):
 
                 continue
 
-            if 'ALGO' in s.tags():  # send to Algo
+            if 'ALGO' in s.tags:  # send to Algo
                 if inst == 'SENSORS':
                     s.put_data(data)  # temporarily send all data to Algo
                  #   continue
