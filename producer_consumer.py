@@ -102,18 +102,16 @@ class ProducerConsumer(object):
                     s.put_data(data)
                 elif inst == 'SF':  # start fastest path; get the cached value and send to Robot
                     s.put_data(self.cache.get('FP'))
-                continue
 
-            if 'ANDROID' in s.tags:  # send to Android
+            elif 'ANDROID' in s.tags:  # send to Android
                 print('HALO INSIDE ANDROID')
                 if inst.startwith('MDF') or inst == 'STATUS':
                     s.put_data(data)
                 elif inst == 'MC':  # movement completed; dequeue instructions and send to Android
                     val = self.instructions.popleft()
                     s.put_data({'MDP15': 'FP', 'FP': val})
-                continue
 
-            if 'ALGO' in s.tags:  # send to Algo
+            elif 'ALGO' in s.tags:  # send to Algo
                 #if inst == 'SENSORS':
                 s.put_data(data)  # temporarily send all data to Algo
                  #   continue
