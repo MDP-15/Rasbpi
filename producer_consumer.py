@@ -87,7 +87,9 @@ class ProducerConsumer(object):
             return
 
         print(self.observers)
+        print(len(self.observers))
         for s in self.observers:
+            print(s)
             s.get_name()
             s.get_tags()
             s.put_data(data)
