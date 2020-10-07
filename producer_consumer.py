@@ -93,10 +93,11 @@ class ProducerConsumer(object):
             #print(s)
             #s.get_name()
             print(s.tags)
-            continue
+            #continue
             #s.put_data(data)
             #print(f'tag is {s.get_tags()}')
             if 'ROBOT' in s.tags:  # send to Robot
+                print('HALO INSIDE ROBOT')
                 if inst == 'RI':
                     s.put_data(data)
                 elif inst == 'SF':  # start fastest path; get the cached value and send to Robot
@@ -104,6 +105,7 @@ class ProducerConsumer(object):
                 continue
 
             if 'ANDROID' in s.tags:  # send to Android
+                print('HALO INSIDE ANDROID')
                 if inst.startwith('MDF') or inst == 'STATUS':
                     s.put_data(data)
                 elif inst == 'MC':  # movement completed; dequeue instructions and send to Android
