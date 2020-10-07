@@ -93,6 +93,7 @@ class ProducerConsumer(object):
             #print(s)
             #s.get_name()
             print(s.tags)
+            continue
             #s.put_data(data)
             #print(f'tag is {s.get_tags()}')
             if 'ROBOT' in s.tags:  # send to Robot
