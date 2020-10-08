@@ -3,6 +3,7 @@ import bluetooth
 from interface import ServerInterface
 from config import ProjectConfig
 import json
+import subprocess
 
 
 class BluetoothConn(ServerInterface):
@@ -28,8 +29,10 @@ class BluetoothConn(ServerInterface):
 
     def connect(self):
         try:
+            subprocess.call(['sudo', 'hciconfig', 'hci0', 'piscan'])
+
             self.conn = BluetoothSocket(bluetooth.RFCOMM)  # use RFCOMM protocol
-            self.conn.bind((self.address, self.port))  # empty address; use any available adapter
+            self.conn.bind((self.address, self.port))
             self.address, self.port = self.conn.getsockname()
 
             self.conn.listen(1)

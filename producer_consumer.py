@@ -84,50 +84,44 @@ class ProducerConsumer(object):
             self.instructions = split_fp(val)
             return
 
-        #print(self.observers)
-        #print(len(self.observers))
-        #count = 1
+        # print(self.observers)
+        # print(len(self.observers))
+        # count = 1
         for s in self.observers:
-            #print(s)
-            #s.get_name()
-            #print(s.tags)
-            #continue
-            #s.put_data(data)
-            #print(f'tag is {s.get_tags()}')
-            #print('boolean ', 'ROBOT' in s.tags)
+            # print(s)
+            # s.get_name()
+            # print(s.tags)
+            # continue
+            # s.put_data(data)
+            # print(f'tag is {s.get_tags()}')
+            # print('boolean ', 'ROBOT' in s.tags)
             if 'ROBOT' in s.tags:  # send to Robot
-                #print('HALO INSIDE ROBOT')
                 if inst == 'RI':
                     if 'ALGO' in self.tags:
-                        self.cache['latest'] = data.get('RI') # to get latest movement from algo
-
+                        self.cache['latest'] = data.get('RI')  # get latest movement from algo and store in local cache
                     s.put_data(data)
-                elif inst == 'SF':  # start fastest path; get the cached value and send to Robot
+                elif inst == 'SF':  # start fastest path; get the cached string and send to Robot
                     s.put_data(self.cache.get('FP'))
 
             elif 'ANDROID' in s.tags:  # send to Android
-                #print('HALO INSIDE ANDROID')
-                #print('8888')
                 if inst.startswith('MDF') or inst == 'STATUS':
-                    #print('----')
                     s.put_data(data)
-                elif inst == 'MC':  # movement completed; dequeue instructions and send to Android
-                    if 'latest' in self.cache:
+                elif inst == 'MC':  # movement completed
+                    if 'latest' in self.cache:  # for exploration; get the latest instruction from Algo
                         s.put_data({'MDP15': 'RI', 'RI': self.cache.get('latest')})
-                    if len(self.instructions) != 0:
+                    if len(self.instructions) != 0:  # for fastest path; dequeue instructions and send to Android
                         val = self.instructions.popleft()
                         s.put_data({'MDP15': 'RI', 'RI': val})
 
                 continue
 
             if 'ALGO' in s.tags:  # send to Algo
-                #print(data)
-                if inst == 'SENSORS':
-                    s.put_data(data)  # temporarily send all data to Algo
-                 #   continue
+                # print(data)
+                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE':
+                    s.put_data(data)
 
-            #count += 1
-            #print('count', count)
+            # count += 1
+            # print('count', count)
 
     # put data into queue
     def put_data(self, data):
