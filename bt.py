@@ -57,6 +57,7 @@ class BluetoothConn(ServerInterface):
     def read(self):
         try:
             data = self.client.recv(1024)
+            print(data)
             # data = data.decode('utf-8')
             if not data:
                 raise ConnectionError('No transmission')

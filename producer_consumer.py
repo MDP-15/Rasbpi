@@ -4,6 +4,9 @@ from threading import Thread
 from collections import deque
 
 
+CACHE = {}
+
+
 def spawn_thread(target) -> Thread:
     return Thread(target=target, daemon=True)
 
@@ -56,6 +59,8 @@ class ProducerConsumer(object):
                 self.notify_observers(data)
             except ConnectionError:
                 break
+            except Exception:
+                continue
 
     def write_listen(self):
         while True:
@@ -80,7 +85,7 @@ class ProducerConsumer(object):
         # special case for fastest path string
         if inst == 'FP':
             val = data.get('FP')
-            self.cache['FP'] = val  # store in cache
+            CACHE['FP'] = val  # store in cache
             self.instructions = split_fp(val)
             return
 
@@ -94,21 +99,23 @@ class ProducerConsumer(object):
             # continue
             # s.put_data(data)
             # print(f'tag is {s.get_tags()}')
-            # print('boolean ', 'ROBOT' in s.tags)
+            # print('boolean ', 'ROBOT' in s.tags)l
             if 'ROBOT' in s.tags:  # send to Robot
-                if inst == 'RI':
+                if inst.endswith('RI'):
                     if 'ALGO' in self.tags:
-                        self.cache['latest'] = data.get('RI')  # get latest movement from algo and store in local cache
+                        CACHE['latest'] = data.get('RI')  # get latest movement from algo and store in local cache
+                        print("This is the latest instruction from ALGO", CACHE['latest'])
                     s.put_data(data)
                 elif inst == 'SF':  # start fastest path; get the cached string and send to Robot
-                    s.put_data(self.cache.get('FP'))
+                    s.put_data(CACHE.get('FP'))
 
             elif 'ANDROID' in s.tags:  # send to Android
                 if inst.startswith('MDF') or inst == 'STATUS':
                     s.put_data(data)
                 elif inst == 'MC':  # movement completed
-                    if 'latest' in self.cache:  # for exploration; get the latest instruction from Algo
-                        s.put_data({'MDP15': 'RI', 'RI': self.cache.get('latest')})
+                    if 'latest' in CACHE:  # for exploration; get the latest instruction from Algo
+                        s.put_data({'MDP15': 'RI', 'RI': CACHE.get('latest')})
+                        print("This is the latest instructions to ANRDOID", CACHE['latest'])
                     if len(self.instructions) != 0:  # for fastest path; dequeue instructions and send to Android
                         val = self.instructions.popleft()
                         s.put_data({'MDP15': 'RI', 'RI': val})
