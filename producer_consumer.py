@@ -5,14 +5,15 @@ from collections import deque
 
 
 CACHE = {}
+INSTRUCTIONS = []
 
 
 def spawn_thread(target) -> Thread:
     return Thread(target=target, daemon=True)
 
 
-def split_fp(inst) -> deque:
-    res = deque()
+def split_fp(inst):
+    res = []
     for i in range(0, len(inst)):
         if inst[i] == 'F':
             res.append(inst[i: i + 2])
@@ -38,7 +39,7 @@ class ProducerConsumer(object):
         count = 0
         while True:
             count += 1
-            if count > 5:
+            if count > 20:
                 print(f'{self.name}: max number of reconnections exceeded.')
                 break
             try:
@@ -86,7 +87,11 @@ class ProducerConsumer(object):
         if inst == 'FP':
             val = data.get('FP')
             CACHE['FP'] = val  # store in cache
-            self.instructions = split_fp(val)
+            CACHE['fp'] = True
+            global INSTRUCTIONS
+            INSTRUCTIONS = split_fp(val)
+            print("SPLIT INSTRUCTION IS : ", INSTRUCTIONS)
+            print("Length of instructions A: ", len(INSTRUCTIONS))
             return
 
         # print(self.observers)
@@ -106,25 +111,31 @@ class ProducerConsumer(object):
                         CACHE['latest'] = data.get('RI')  # get latest movement from algo and store in local cache
                         print("This is the latest instruction from ALGO", CACHE['latest'])
                     s.put_data(data)
-                elif inst == 'SF':  # start fastest path; get the cached string and send to Robot
-                    s.put_data(CACHE.get('FP'))
+                elif inst == 'FP':  # start fastest path; get the cached string and send to Robot
+                    s.put_data({'RI': CACHE.get('FP')})
 
             elif 'ANDROID' in s.tags:  # send to Android
-                if inst.startswith('MDF') or inst == 'STATUS':
-                    s.put_data(data)
-                elif inst == 'MC':  # movement completed
-                    if 'latest' in CACHE:  # for exploration; get the latest instruction from Algo
-                        s.put_data({'MDP15': 'RI', 'RI': CACHE.get('latest')})
-                        print("This is the latest instructions to ANRDOID", CACHE['latest'])
-                    if len(self.instructions) != 0:  # for fastest path; dequeue instructions and send to Android
-                        val = self.instructions.popleft()
-                        s.put_data({'MDP15': 'RI', 'RI': val})
+                try:
+                    if inst.startswith('MDF') or inst == 'STATUS':
+                        s.put_data(data)
+                    elif inst == 'MC':  # movement completed
+                        if 'latest' in CACHE and 'fp' not in CACHE:  # for exploration; get the latest instruction from Algo
+                            s.put_data({'MDP15': 'RI', 'RI': CACHE.get('latest')[:-1]})
+                            print("This is the latest instructions to ANDROID", CACHE['latest'])
+                        print("Length of instructions B: ", len(INSTRUCTIONS))
+                        if len(INSTRUCTIONS) != 0:  # for fastest path; dequeue instructions and send to Android
+                            val = INSTRUCTIONS.pop(0)
+                            print("val is " , val)
+                            s.put_data({'MDP15': 'RI', 'RI': val})
+                    elif inst == 'RI' and data.get('RI') == 'E':  # end exploration and send status
+                        s.put_data({'MDP15': 'STATUS', 'STATUS': 'Exp Complete'})
+                        
+                except Exception as e:
+                    print(e)
 
-                continue
-
-            if 'ALGO' in s.tags:  # send to Algo
+            elif 'ALGO' in s.tags:  # send to Algo
                 # print(data)
-                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE':
+                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE' or inst == 'SF':
                     s.put_data(data)
 
             # count += 1
