@@ -116,7 +116,7 @@ class ProducerConsumer(object):
                         s.put_data({'MDP15': 'RI', 'RI': self.cache.get('latest')})
                     if len(self.instructions) != 0:
                         val = self.instructions.popleft()
-                        s.put_data({'MDP15': 'FP', 'FP': val})
+                        s.put_data({'MDP15': 'RI', 'RI': val})
 
                 continue
 
