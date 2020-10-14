@@ -90,7 +90,7 @@ class ProducerConsumer(object):
         inst = data.get('MDP15')
 
         # for image rec
-        if inst == 'RI':
+        if inst == 'RP':
             camera.capture(output, 'bgr')
 
         # special case for fastest path string
@@ -143,8 +143,9 @@ class ProducerConsumer(object):
                     s.put_data(data)
 
             elif 'IMAGE_REC' in s.tags:
-                if inst == 'RI':
-                    s.put_data(output)
+                if inst == 'RP':
+                    s.put_data([output, data])
+                    print("Output: ", output, "Data: ", data)
 
     # put data into queue
     def put_data(self, data):

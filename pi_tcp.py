@@ -80,14 +80,24 @@ class CamPcConn(ServerInterface):
 
     def write(self, message):
         try:
-            result, frame = cv2.imencode('.jpg', message, encode_param)
+            image = message[0]
+            coor = message[1]
+            
+            result, frame = cv2.imencode('.jpg', image, encode_param)
             data = pickle.dumps(frame, 0)
             size = len(data)
+            image_data = struct.pack(">L", size) + data
+            
+            
+            coor = json.dumps(coor)
+            coor_data = pickle.dumps(coor, 0)
+            size = len(coor_data)
+            coor_data = struct.pack(">L", size) + coor_data
 
             # print("{}: {}".format(img_counter, size))
             # client_socket.sendall(struct.pack(">L", size) + data)
 
-            self.client.sendto(struct.pack(">L", size) + data, self.addr)
+            self.client.sendto(image_data + coor_data, self.addr)
             print(f'Sent to IR PC: {message}')
 
         except socket.error as e:
