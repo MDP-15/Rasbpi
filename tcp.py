@@ -4,6 +4,7 @@ from config import ProjectConfig
 import json
 import time
 
+
 class PcConn(ServerInterface):
 
     def __init__(self, config: ProjectConfig):
@@ -58,26 +59,26 @@ class PcConn(ServerInterface):
             data = self.client.recv(4096)  # reads data from the socket in batches of 1024 bytes
             print("Data", data)
             data_string = data.decode('utf-8')
-            #"{MDP15:RI, RI: xxx}{MDP:MDF, MDF:002}" => "{MDP15:RI, RI: xxx", "{MDP:MDF, MDF:002" , ""
-            #data_list = data_string.split('}')
-    
+            # "{MDP15:RI, RI: xxx}{MDP:MDF, MDF:002}" => "{MDP15:RI, RI: xxx", "{MDP:MDF, MDF:002" , ""
+            # data_list = data_string.split('}')
+
             count = 0
             for i in data_string:
                 if i == '}':
                     count = count + 1
-                    
+
             if count == 1:
                 data_dict = json.loads(data_string)
-#                 j = json.loads(data_string)
-#                 key = j.get('MDP15')
-#                 data_dict[key] = j.get(key)
-                
+            #                 j = json.loads(data_string)
+            #                 key = j.get('MDP15')
+            #                 data_dict[key] = j.get(key)
+
             elif count > 1:
                 data_list = data_string.split('}')
-                if data_list[len(data_list)-1] is not '':
+                if data_list[len(data_list) - 1] is not '':
                     print('buffer overflow?')
                     return
-                
+
                 data_dict = {'MDP15': 'MDFRI'}
                 for i in data_list:
                     if i is not "":
@@ -85,23 +86,23 @@ class PcConn(ServerInterface):
                         s_json = json.loads(s)
                         key = s_json.get('MDP15')
                         data_dict[key] = s_json.get(key)
-            
+
             if not data:
                 raise ConnectionError('No transmission')
-            #data_dict = json.loads(data)
+            # data_dict = json.loads(data)
             print(f'Received from PC: {data_dict}')
             return self.format_data(data_dict)
-        
-#             if data_list[len(data_list)-1] is not '':
-#                 print('buffer overflow?')
-#                 return
-#             data_dict = {'MDP15': 'MDFRI'}
-#             for i in data_list:
-#                 if i is not "": 
-#                     s = i + "}"
-#                     s_json = json.loads(s)
-#                     key = s_json.get('MDP15')
-#                     data_dict[key] = s_json.get(key)
+
+        #             if data_list[len(data_list)-1] is not '':
+        #                 print('buffer overflow?')
+        #                 return
+        #             data_dict = {'MDP15': 'MDFRI'}
+        #             for i in data_list:
+        #                 if i is not "":
+        #                     s = i + "}"
+        #                     s_json = json.loads(s)
+        #                     key = s_json.get('MDP15')
+        #                     data_dict[key] = s_json.get(key)
 
         except socket.error as e:
             print(f'IO Error with {self.get_name()}: {e}')
@@ -114,10 +115,10 @@ class PcConn(ServerInterface):
 
     def write(self, message):
         try:
-            #message = str(message)
-            #byte_msg: bytes = str.encode(message + '\n')
+            # message = str(message)
+            # byte_msg: bytes = str.encode(message + '\n')
             json_str = json.dumps(message)
-            byte_msg = bytes(json_str, encoding='utf-8') 
+            byte_msg = bytes(json_str, encoding='utf-8')
             self.client.sendto(byte_msg, self.addr)
             print(f'Sent to PC: {message}')
 
@@ -134,8 +135,8 @@ class PcConn(ServerInterface):
 if __name__ == '__main__':
     server = PcConn(ProjectConfig(default=False))
     server.connect()
-    Robot_Position = '{"MDP15":"SENSORS","SENSORS":"0;0;0;0;0;0"}' #to algo
-    RP = json.loads(Robot_Position)   
+    Robot_Position = '{"MDP15":"SENSORS","SENSORS":"0;0;0;0;0;0"}'  # to algo
+    RP = json.loads(Robot_Position)
     while True:
         server.write(RP)
         server.read()

@@ -2,10 +2,16 @@ from queue import Queue
 from interface import ServerInterface
 from threading import Thread
 from collections import deque
-
+from picamera import PiCamera
+import numpy as np
 
 CACHE = {}
 INSTRUCTIONS = []
+
+camera = PiCamera()
+camera.resolution = (320, 240)
+camera.framerate = 24
+output = np.empty((240, 320, 3), dtype=np.uint8)
 
 
 def spawn_thread(target) -> Thread:
@@ -83,6 +89,10 @@ class ProducerConsumer(object):
 
         inst = data.get('MDP15')
 
+        # for image rec
+        if inst == 'RI':
+            camera.capture(output, 'bgr')
+
         # special case for fastest path string
         if inst == 'FP':
             val = data.get('FP')
@@ -98,13 +108,7 @@ class ProducerConsumer(object):
         # print(len(self.observers))
         # count = 1
         for s in self.observers:
-            # print(s)
-            # s.get_name()
-            # print(s.tags)
-            # continue
-            # s.put_data(data)
-            # print(f'tag is {s.get_tags()}')
-            # print('boolean ', 'ROBOT' in s.tags)l
+
             if 'ROBOT' in s.tags:  # send to Robot
                 if inst.endswith('RI'):
                     if 'ALGO' in self.tags:
@@ -135,11 +139,12 @@ class ProducerConsumer(object):
 
             elif 'ALGO' in s.tags:  # send to Algo
                 # print(data)
-                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE' or inst == 'SF':
+                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE' or inst == 'SF' or inst == 'PIC':
                     s.put_data(data)
 
-            # count += 1
-            # print('count', count)
+            elif 'IMAGE_REC' in s.tags:
+                if inst == 'RI':
+                    s.put_data(output)
 
     # put data into queue
     def put_data(self, data):
