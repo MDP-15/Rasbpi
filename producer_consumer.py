@@ -92,7 +92,7 @@ class ProducerConsumer(object):
             INSTRUCTIONS = split_fp(val)
             print("SPLIT INSTRUCTION IS : ", INSTRUCTIONS)
             print("Length of instructions A: ", len(INSTRUCTIONS))
-            return
+            #return
 
         # print(self.observers)
         # print(len(self.observers))
