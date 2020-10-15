@@ -2,16 +2,9 @@ from queue import Queue
 from interface import ServerInterface
 from threading import Thread
 from collections import deque
-from picamera import PiCamera
-import numpy as np
 
 CACHE = {}
 INSTRUCTIONS = []
-
-camera = PiCamera()
-camera.resolution = (320, 240)
-camera.framerate = 24
-output = np.empty((240, 320, 3), dtype=np.uint8)
 
 
 def spawn_thread(target) -> Thread:
@@ -89,10 +82,6 @@ class ProducerConsumer(object):
 
         inst = data.get('MDP15')
 
-        # for image rec
-        if inst == 'RP':
-            camera.capture(output, 'bgr')
-
         # special case for fastest path string
         if inst == 'FP':
             val = data.get('FP')
@@ -102,11 +91,7 @@ class ProducerConsumer(object):
             INSTRUCTIONS = split_fp(val)
             print("SPLIT INSTRUCTION IS : ", INSTRUCTIONS)
             print("Length of instructions A: ", len(INSTRUCTIONS))
-            #return
 
-        # print(self.observers)
-        # print(len(self.observers))
-        # count = 1
         for s in self.observers:
 
             if 'ROBOT' in s.tags:  # send to Robot
@@ -144,8 +129,8 @@ class ProducerConsumer(object):
 
             elif 'IMAGE_REC' in s.tags:
                 if inst == 'RP':
-                    s.put_data([output, data])
-                    print("Output: ", output, "Data: ", data)
+                    s.put_data(data)
+                    # print("Output: ", output, "Data: ", data)
 
     # put data into queue
     def put_data(self, data):

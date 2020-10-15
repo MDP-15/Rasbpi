@@ -5,17 +5,21 @@ import json
 import cv2
 import struct
 import pickle
-
+from picamera import PiCamera
+import numpy as np
 
 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
 
 class CamPcConn(ServerInterface):
 
-    def __init__(self, config: ProjectConfig):
+    def __init__(self, config: ProjectConfig, camera: PiCamera):
         self.ip_address = config.get('IP_ADDRESS')
         self.port = int(config.get('PICAM_PORT'))
         self._connected = False
+
+        self.camera = camera
+        self.output = np.empty((240, 320, 3), dtype=np.uint8)
 
         self.conn = None
         self.client = None
@@ -80,22 +84,20 @@ class CamPcConn(ServerInterface):
 
     def write(self, message):
         try:
-            image = message[0]
-            coor = message[1]
-            
+            self.camera.capture(self.output, 'bgr')
+
+            image = self.output
+            coor = message
+
             result, frame = cv2.imencode('.jpg', image, encode_param)
             data = pickle.dumps(frame, 0)
             size = len(data)
             image_data = struct.pack(">L", size) + data
-            
-            
+
             coor = json.dumps(coor)
             coor_data = pickle.dumps(coor, 0)
             size = len(coor_data)
             coor_data = struct.pack(">L", size) + coor_data
-
-            # print("{}: {}".format(img_counter, size))
-            # client_socket.sendall(struct.pack(">L", size) + data)
 
             self.client.sendto(image_data + coor_data, self.addr)
             print(f'Sent to IR PC: {message}')
@@ -108,14 +110,3 @@ class CamPcConn(ServerInterface):
         except Exception as e:
             print(f'Error with writing to {self.get_name()}: {e}')
             raise e
-
-
-# if __name__ == '__main__':
-#     server = CamPcConn(ProjectConfig(default=False))
-#     server.connect()
-#     Robot_Position = '{"MDP15":"SENSORS","SENSORS":"0;0;0;0;0;0"}'  # to algo
-#     RP = json.loads(Robot_Position)
-#     while True:
-#         server.write(RP)
-#         server.read()
-#         time.sleep(2)
