@@ -9,8 +9,8 @@ from config import ProjectConfig
 from picamera import PiCamera
 
 camera = PiCamera()
-camera.resolution = (320, 240)
-camera.framerate = 24
+camera.resolution = (640, 480)
+camera.framerate = 32
 
 thread_queue = Queue()
 
@@ -58,5 +58,11 @@ if __name__ == '__main__':
     server_list.append(usb_server)
     server_list.append(pc_server)
     server_list.append(cam_server)
-
+    
+    #camera.capture('image.jpg', 'jpeg')
+    camera.start_recording('pi_video.h264')
+    #camera.wait_recording(15)
+    #camera.stop_recording()
     run_all(server_list)
+    #camera.stop_recording()
+    

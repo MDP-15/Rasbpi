@@ -118,6 +118,8 @@ class ProducerConsumer(object):
                             s.put_data({'MDP15': 'RI', 'RI': val})
                     elif inst == 'RI' and data.get('RI') == 'E':  # end exploration and send status
                         s.put_data({'MDP15': 'STATUS', 'STATUS': 'Exp Complete'})
+                    elif inst == 'IR':
+                        s.put_data(data) #Algo send to Android image rec
                         
                 except Exception as e:
                     print(e)
