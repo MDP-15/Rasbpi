@@ -57,21 +57,18 @@ class PcConn(ServerInterface):
     def read(self):
         try:
             data = self.client.recv(4096)  # reads data from the socket in batches of 1024 bytes
-            print("Data", data)
             data_string = data.decode('utf-8')
+            data_dict = {}
             # "{MDP15:RI, RI: xxx}{MDP:MDF, MDF:002}" => "{MDP15:RI, RI: xxx", "{MDP:MDF, MDF:002" , ""
             # data_list = data_string.split('}')
 
             count = 0
             for i in data_string:
                 if i == '}':
-                    count = count + 1
+                    count+=1
 
             if count == 1:
                 data_dict = json.loads(data_string)
-            #                 j = json.loads(data_string)
-            #                 key = j.get('MDP15')
-            #                 data_dict[key] = j.get(key)
 
             elif count > 1:
                 data_list = data_string.split('}')
@@ -79,30 +76,26 @@ class PcConn(ServerInterface):
                     print('buffer overflow?')
                     return
 
-                data_dict = {'MDP15': 'MDFRI'}
+                #data_dict = {'MDP15': 'MDFRIRP'}
+                key_str = ''
                 for i in data_list:
-                    if i is not "":
-                        s = i + "}"
+                    if i is not '':
+                        s = i + '}'
                         s_json = json.loads(s)
                         key = s_json.get('MDP15')
-                        data_dict[key] = s_json.get(key)
-
+                        key_str += key
+                        if key != 'RP':
+                            data_dict[key] = s_json.get(key)
+                        else:
+                            data_dict['X'] = s_json.get('X')
+                            data_dict['Y'] = s_json.get('Y')
+                            data_dict['O'] = s_json.get('O')
+                data_dict['MDP15'] = key_str
             if not data:
                 raise ConnectionError('No transmission')
             # data_dict = json.loads(data)
             print(f'Received from PC: {data_dict}')
             return self.format_data(data_dict)
-
-        #             if data_list[len(data_list)-1] is not '':
-        #                 print('buffer overflow?')
-        #                 return
-        #             data_dict = {'MDP15': 'MDFRI'}
-        #             for i in data_list:
-        #                 if i is not "":
-        #                     s = i + "}"
-        #                     s_json = json.loads(s)
-        #                     key = s_json.get('MDP15')
-        #                     data_dict[key] = s_json.get(key)
 
         except socket.error as e:
             print(f'IO Error with {self.get_name()}: {e}')

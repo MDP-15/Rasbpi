@@ -13,13 +13,13 @@ encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
 class CamPcConn(ServerInterface):
 
-    def __init__(self, config: ProjectConfig, camera: PiCamera):
+    def __init__(self, config: ProjectConfig):
         self.ip_address = config.get('IP_ADDRESS')
         self.port = int(config.get('PICAM_PORT'))
         self._connected = False
 
-        self.camera = camera
-        self.output = np.empty((240, 320, 3), dtype=np.uint8)
+        self.camera = None
+        #self.output = np.empty((240, 320, 3), dtype=np.uint8)
 
         self.conn = None
         self.client = None
@@ -39,6 +39,9 @@ class CamPcConn(ServerInterface):
         if self.client:
             self.client.close()
             print('Terminating client socket..')
+            
+        if self.camera:
+            self.camera.close()
 
         self._connected = False
 
@@ -83,24 +86,35 @@ class CamPcConn(ServerInterface):
             raise e
 
     def write(self, message):
+        #print("*****WRITE ENTERED******")
         try:
-            self.camera.capture(self.output, 'bgr')
+            
+            self.camera = PiCamera()
+            self.camera.resolution = (320, 240)
+            self.camera.framerate = 32
+           
+            for i in range(3):
+                output = np.empty((240, 320, 3), dtype=np.uint8)
+                self.camera.capture(output, 'bgr')
+                #print(message)
+                image = output
+                coor = message
 
-            image = self.output
-            coor = message
+                result, frame = cv2.imencode('.jpg', image, encode_param)
+                data = pickle.dumps(frame, 0)
+                size = len(data)
+                image_data = struct.pack(">L", size) + data
 
-            result, frame = cv2.imencode('.jpg', image, encode_param)
-            data = pickle.dumps(frame, 0)
-            size = len(data)
-            image_data = struct.pack(">L", size) + data
+                coor = json.dumps(coor)
+                coor_data = pickle.dumps(coor, 0)
+                size = len(coor_data)
+                coor_data = struct.pack(">L", size) + coor_data
 
-            coor = json.dumps(coor)
-            coor_data = pickle.dumps(coor, 0)
-            size = len(coor_data)
-            coor_data = struct.pack(">L", size) + coor_data
-
-            self.client.sendto(image_data + coor_data, self.addr)
-            print(f'Sent to IR PC: {message}')
+                self.client.sendto(image_data + coor_data, self.addr)
+                print(f'**{i}** Sent to IR PC : {message}')
+                
+            #output.close()
+            self.camera.close()
 
         except socket.error as e:
             print(f'IO Error with {self.get_name()}: {e}')

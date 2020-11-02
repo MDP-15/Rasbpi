@@ -72,7 +72,8 @@ class ProducerConsumer(object):
                     self.server.write(data)
             except ConnectionError:
                 break
-            except Exception:
+            except Exception as e:
+                print(e)
                 continue
 
     # notify relevant subscribers subscribed to this server that data has been read from the client
@@ -81,7 +82,7 @@ class ProducerConsumer(object):
             return
 
         inst = data.get('MDP15')
-
+        
         # special case for fastest path string
         if inst == 'FP':
             val = data.get('FP')
@@ -89,13 +90,11 @@ class ProducerConsumer(object):
             CACHE['fp'] = True
             global INSTRUCTIONS
             INSTRUCTIONS = split_fp(val)
-            print("SPLIT INSTRUCTION IS : ", INSTRUCTIONS)
-            print("Length of instructions A: ", len(INSTRUCTIONS))
 
         for s in self.observers:
 
             if 'ROBOT' in s.tags:  # send to Robot
-                if inst.endswith('RI'):
+                if inst.find('RI') != -1:
                     if 'ALGO' in self.tags:
                         CACHE['latest'] = data.get('RI')  # get latest movement from algo and store in local cache
                         print("This is the latest instruction from ALGO", CACHE['latest'])
@@ -105,13 +104,15 @@ class ProducerConsumer(object):
 
             elif 'ANDROID' in s.tags:  # send to Android
                 try:
-                    if inst.startswith('MDF') or inst == 'STATUS':
+                    if inst.find('MDF') != -1:
+                        s.put_data({'MDP15': 'MDF', 'MDF': data.get('MDF')})
+                    elif inst == 'STATUS':
                         s.put_data(data)
                     elif inst == 'MC':  # movement completed
                         if 'latest' in CACHE and 'fp' not in CACHE:  # for exploration; get the latest instruction from Algo
                             s.put_data({'MDP15': 'RI', 'RI': CACHE.get('latest')[:-1]})
                             print("This is the latest instructions to ANDROID", CACHE['latest'])
-                        print("Length of instructions B: ", len(INSTRUCTIONS))
+                        #print("Length of instructions B: ", len(INSTRUCTIONS))
                         if len(INSTRUCTIONS) != 0:  # for fastest path; dequeue instructions and send to Android
                             val = INSTRUCTIONS.pop(0)
                             print("val is " , val)
@@ -119,6 +120,7 @@ class ProducerConsumer(object):
                     elif inst == 'RI' and data.get('RI') == 'E':  # end exploration and send status
                         s.put_data({'MDP15': 'STATUS', 'STATUS': 'Exp Complete'})
                     elif inst == 'IR':
+                        print("*******Image Rec to Android******* ", data)
                         s.put_data(data) #Algo send to Android image rec
                         
                 except Exception as e:
@@ -126,24 +128,30 @@ class ProducerConsumer(object):
 
             elif 'ALGO' in s.tags:  # send to Algo
                 # print(data)
-                if inst == 'SENSORS' or inst == 'RP' or inst == 'W' or inst == 'O' or inst == 'SE' or inst == 'SF' or inst == 'PIC':
+                if inst == 'SENSORS' or inst == 'W' or inst == 'O' or inst == 'SE' or inst == 'SF':
                     s.put_data(data)
 
             elif 'IMAGE_REC' in s.tags:
-                if inst == 'RP':
-                    s.put_data(data)
-                    # print("Output: ", output, "Data: ", data)
+                if inst.find('RP') != -1:
+                    new_data = {'MDP15': 'RP', 'X': data.get('X'), 'Y': data.get('Y'), 'O': data.get('O')}
+                    s.put_data(new_data)
 
     # put data into queue
     def put_data(self, data):
-        self.q.put(data)
+        try:
+            self.q.put(data)
+        except Exception as e:
+            print(e)
 
     def register(self, items: list):
         self.observers.extend(items)
 
     def get_data(self):
-        if self.q.empty():
-            return None
-        data = self.q.get()
-        # self.q.task_done()
-        return data
+        try:
+            if self.q.empty():
+                return None
+            data = self.q.get()
+            # self.q.task_done()
+            return data
+        except Exception as e:
+            print(e)

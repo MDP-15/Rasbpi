@@ -6,11 +6,7 @@ from pi_tcp import CamPcConn
 from queue import Queue
 from producer_consumer import ProducerConsumer
 from config import ProjectConfig
-from picamera import PiCamera
 
-camera = PiCamera()
-camera.resolution = (640, 480)
-camera.framerate = 32
 
 thread_queue = Queue()
 
@@ -47,7 +43,7 @@ if __name__ == '__main__':
     bt_server = ProducerConsumer(BluetoothConn(config))
     usb_server = ProducerConsumer(ArduinoConn(config))
     pc_server = ProducerConsumer(PcConn(config))
-    cam_server = ProducerConsumer(CamPcConn(config=config, camera=camera))
+    cam_server = ProducerConsumer(CamPcConn(config=config))
 
     pc_server.register([bt_server, usb_server, cam_server])
     bt_server.register([pc_server, usb_server])
@@ -59,8 +55,15 @@ if __name__ == '__main__':
     server_list.append(pc_server)
     server_list.append(cam_server)
     
+    def print_queue():
+        while True:
+            print('***************QUEUE***************')
+            print("PRINTING QUEUE ", cam_server.q.queue)
+    
+    #threading.Thread(target=print_queue, daemon=True).start()
+    
     #camera.capture('image.jpg', 'jpeg')
-    camera.start_recording('pi_video.h264')
+    #camera.start_recording('pi_video.h264')
     #camera.wait_recording(15)
     #camera.stop_recording()
     run_all(server_list)

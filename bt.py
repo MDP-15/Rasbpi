@@ -57,7 +57,6 @@ class BluetoothConn(ServerInterface):
     def read(self):
         try:
             data = self.client.recv(1024)
-            print(data)
             # data = data.decode('utf-8')
             if not data:
                 raise ConnectionError('No transmission')
@@ -76,7 +75,10 @@ class BluetoothConn(ServerInterface):
 
     def write(self, message):
         try:
+            #print("=====In BT.py===== ")
+            #print("Python object is", message)
             json_str = json.dumps(message)
+            #print("Json String is",json_str)
             byte_msg = bytes(json_str, encoding='utf-8')
             self.client.send(byte_msg)
             print(f'Sent to Android device: {byte_msg}')
